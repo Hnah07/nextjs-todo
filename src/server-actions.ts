@@ -1,6 +1,6 @@
 "use server";
 
-import { addTodo, deleteTodo, toggleTodo } from "./queries";
+import { addTodo, deleteTodo, toggleTodo, updateTodo } from "./queries";
 import { revalidatePath } from "next/cache";
 import type { Todo } from "./types";
 
@@ -17,5 +17,14 @@ export const handleAddTodo = async (todo: string): Promise<Todo> => {
 
 export const handleToggleComplete = async (id: number, completed: boolean) => {
   await toggleTodo(id, completed);
+  revalidatePath("/");
+};
+
+export const handleUpdateTodo = async (
+  id: number,
+  todo: string,
+  photo_url: string
+) => {
+  await updateTodo(id, todo, photo_url);
   revalidatePath("/");
 };

@@ -26,6 +26,7 @@ import { FaRegEdit } from "react-icons/fa";
 import { useState } from "react";
 import { handleDelete, handleToggleComplete } from "@/server-actions";
 import type { Todo } from "@/types";
+import Image from "next/image";
 
 export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -40,7 +41,7 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   };
 
   return (
-    <div className="flex items-center gap-4 w-full border-1 border-black rounded-md px-4">
+    <div className="flex items-center gap-4 w-full border border-gray-200 rounded-lg px-4 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white">
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1" className={completed ? "opacity-50" : ""}>
           <div className="flex items-center justify-between">
@@ -98,7 +99,26 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
               </AlertDialog>
             </div>
           </div>
-          <AccordionContent>{photo_url}</AccordionContent>
+          <AccordionContent>
+            {photo_url && photo_url !== "No photo attached" ? (
+              <div className="py-2">
+                <Image
+                  src={photo_url}
+                  alt={`Todo item: ${todo}`}
+                  className="max-w-full h-auto rounded-lg shadow-sm"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src =
+                      "https://placehold.co/400x300?text=Image+Not+Found";
+                  }}
+                  width={100}
+                  height={100}
+                />
+              </div>
+            ) : (
+              <p className="text-gray-500 italic py-2">No photo attached</p>
+            )}
+          </AccordionContent>
         </AccordionItem>
       </Accordion>
     </div>
