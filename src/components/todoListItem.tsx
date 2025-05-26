@@ -101,18 +101,18 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
           </div>
           <AccordionContent>
             {photo_url && photo_url !== "No photo attached" ? (
-              <div className="py-2">
+              <div className="py-2 relative w-full aspect-[16/9]">
                 <Image
                   src={photo_url}
                   alt={`Todo item: ${todo}`}
-                  className="max-w-full h-auto rounded-lg shadow-sm"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover rounded-lg"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src =
                       "https://placehold.co/400x300?text=Image+Not+Found";
                   }}
-                  width={100}
-                  height={100}
                 />
               </div>
             ) : (
