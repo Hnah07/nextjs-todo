@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { connect } from "./connect";
 import { ResultSetHeader } from "mysql2";
-
-export interface Todo {
-  id: number;
-  title: string;
-  photo_url: string;
-  completed: boolean;
-}
+import { Todo } from "./types";
 
 // Get all todos
 export async function getTodos(): Promise<Todo[]> {
