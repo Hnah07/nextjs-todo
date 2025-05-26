@@ -16,7 +16,7 @@ export const AddTodoItem = () => {
 
         await handleAddTodo(todo);
       }}
-      className="flex flex-col gap-2 w-full"
+      className="flex flex-col w-full"
     >
       <div className="flex gap-4 w-full">
         <Input

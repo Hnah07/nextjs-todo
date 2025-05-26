@@ -40,19 +40,36 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   };
 
   return (
-    <div className="flex items-center gap-4 w-full border-1 border-black rounded-md my-4 px-4">
+    <div className="flex items-center gap-4 w-full border-1 border-black rounded-md px-4">
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="item-1" className={completed ? "opacity-50" : ""}>
           <div className="flex items-center justify-between">
-            <AccordionTrigger
-              className={`flex-1 text-left break-words min-h-[40px] flex items-center hover:no-underline hover:decoration-none [&[data-state=open]]:no-underline ${
-                completed ? "line-through" : ""
-              }`}
-            >
-              {todo}
-            </AccordionTrigger>
+            <div className="flex items-center gap-4 flex-1">
+              {/* complete button */}
+              {completed ? (
+                <MdCheckBox
+                  className="w-5 h-5 cursor-pointer text-green-500 hover:text-green-600 shrink-0"
+                  onClick={toggleComplete}
+                />
+              ) : (
+                <MdCheckBoxOutlineBlank
+                  className="w-5 h-5 cursor-pointer hover:text-green-500 shrink-0"
+                  onClick={toggleComplete}
+                />
+              )}
+              <AccordionTrigger
+                className={`flex-1 text-left break-words min-h-[40px] flex items-center hover:no-underline hover:decoration-none [&[data-state=open]]:no-underline ${
+                  completed ? "line-through" : ""
+                }`}
+              >
+                {todo}
+              </AccordionTrigger>
+            </div>
             <div className="flex items-center gap-4 ml-4 shrink-0">
+              {/* edit button */}
               <FaRegEdit className="w-5 h-5 cursor-pointer hover:text-blue-500" />
+
+              {/* delete button */}
               <AlertDialog
                 open={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}
@@ -79,18 +96,6 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <span className="w-0.5 h-10 bg-gray-300"></span>
-              {completed ? (
-                <MdCheckBox
-                  className="w-5 h-5 cursor-pointer text-green-500 hover:text-green-600"
-                  onClick={toggleComplete}
-                />
-              ) : (
-                <MdCheckBoxOutlineBlank
-                  className="w-5 h-5 cursor-pointer hover:text-green-500"
-                  onClick={toggleComplete}
-                />
-              )}
             </div>
           </div>
           <AccordionContent>{photo_url}</AccordionContent>

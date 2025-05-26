@@ -7,6 +7,7 @@ async function HomePage() {
 
   return (
     <>
+      <h1 className="text-2xl font-bold mb-4">Not another todo list</h1>
       <AddTodoItem />
       {todos.map((todo) => (
         <TodoListItem
