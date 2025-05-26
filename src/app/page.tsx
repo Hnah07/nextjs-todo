@@ -11,8 +11,10 @@ async function HomePage() {
       {todos.map((todo) => (
         <TodoListItem
           key={todo.id}
-          title={todo.todo}
-          description={todo.photo_url}
+          id={todo.id}
+          todo={todo.todo}
+          photo_url={todo.photo_url}
+          completed={todo.completed}
         />
       ))}
     </>

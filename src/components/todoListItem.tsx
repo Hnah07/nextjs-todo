@@ -24,43 +24,32 @@ import {
 } from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import { useState } from "react";
-import { handleDelete } from "@/server-actions";
+import { handleDelete, handleToggleComplete } from "@/server-actions";
+import type { Todo } from "@/types";
 
-interface TodoListItemProps {
-  title: string;
-  description?: string;
-}
-
-export const TodoListItem = ({
-  title,
-  description = "Hier komt een foto bij de todo.",
-}: TodoListItemProps) => {
+export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
 
   const onDelete = async () => {
-    await handleDelete();
+    await handleDelete(id);
     setIsDeleteDialogOpen(false);
   };
 
-  const toggleComplete = () => {
-    setIsCompleted(!isCompleted);
+  const toggleComplete = async () => {
+    await handleToggleComplete(id, !completed);
   };
 
   return (
     <div className="flex items-center gap-4 w-full border-1 border-black rounded-md my-4 px-4">
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem
-          value="item-1"
-          className={isCompleted ? "opacity-50" : ""}
-        >
+        <AccordionItem value="item-1" className={completed ? "opacity-50" : ""}>
           <div className="flex items-center justify-between">
             <AccordionTrigger
               className={`flex-1 text-left break-words min-h-[40px] flex items-center hover:no-underline hover:decoration-none [&[data-state=open]]:no-underline ${
-                isCompleted ? "line-through" : ""
+                completed ? "line-through" : ""
               }`}
             >
-              {title}
+              {todo}
             </AccordionTrigger>
             <div className="flex items-center gap-4 ml-4 shrink-0">
               <FaRegEdit className="w-5 h-5 cursor-pointer hover:text-blue-500" />
@@ -91,7 +80,7 @@ export const TodoListItem = ({
                 </AlertDialogContent>
               </AlertDialog>
               <span className="w-0.5 h-10 bg-gray-300"></span>
-              {isCompleted ? (
+              {completed ? (
                 <MdCheckBox
                   className="w-5 h-5 cursor-pointer text-green-500 hover:text-green-600"
                   onClick={toggleComplete}
@@ -104,7 +93,7 @@ export const TodoListItem = ({
               )}
             </div>
           </div>
-          <AccordionContent>{description}</AccordionContent>
+          <AccordionContent>{photo_url}</AccordionContent>
         </AccordionItem>
       </Accordion>
     </div>
