@@ -1,44 +1,22 @@
-"use client";
-
-import { useState } from "react";
-import { TodoListItem } from "@/components/todoListItem";
 import { AddTodoItem } from "@/components/addTodoItem";
+import { TodoListItem } from "@/components/todoListItem";
+import { getTodos } from "@/queries";
 
-interface Todo {
-  id: string;
-  title: string;
-  description?: string;
-}
-
-const HomePage = () => {
-  const [todos, setTodos] = useState<Todo[]>([
-    {
-      id: "1",
-      title:
-        "TODOTODOTODOTODOTO DOTODOTODOTODOTODOTODOTO DOTODOTODOTODOTODO TODOTODOTODOTODOTODO",
-    },
-  ]);
-
-  const handleAddTodo = (title: string) => {
-    const newTodo: Todo = {
-      id: Date.now().toString(), // Simple way to generate unique IDs
-      title,
-    };
-    setTodos([...todos, newTodo]);
-  };
+async function HomePage() {
+  const todos = await getTodos();
 
   return (
     <>
-      <AddTodoItem onAdd={handleAddTodo} />
+      <AddTodoItem />
       {todos.map((todo) => (
         <TodoListItem
           key={todo.id}
-          title={todo.title}
-          description={todo.description}
+          title={todo.todo}
+          description={todo.photo_url}
         />
       ))}
     </>
   );
-};
+}
 
 export default HomePage;

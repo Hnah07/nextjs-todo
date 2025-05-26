@@ -1,6 +1,6 @@
 export interface Todo {
   id: number;
-  title: string;
+  todo: string;
   photo_url: string;
   completed: boolean;
 }

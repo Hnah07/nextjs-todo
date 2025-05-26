@@ -14,13 +14,13 @@ export async function getTodos(): Promise<Todo[]> {
 
 // Add a new todo
 export async function addTodo(
-  title: string,
+  todo: string,
   photo_url: string = ""
 ): Promise<Todo> {
   const connection = await connect();
   const [result] = await connection.execute<ResultSetHeader>(
-    "INSERT INTO todos (title, photo_url, completed) VALUES (?, ?, ?)",
-    [title, photo_url, false]
+    "INSERT INTO todos (todo, photo_url, completed) VALUES (?, ?, ?)",
+    [todo, photo_url, false]
   );
 
   const [newTodo] = await connection.execute(
@@ -62,13 +62,13 @@ export async function toggleTodo(
 // Update todo text
 export async function updateTodo(
   id: number,
-  title: string,
+  todo: string,
   photo_url: string
 ): Promise<Todo> {
   const connection = await connect();
   await connection.execute(
-    "UPDATE todos SET title = ?, photo_url = ? WHERE id = ?",
-    [title, photo_url, id]
+    "UPDATE todos SET todo = ?, photo_url = ? WHERE id = ?",
+    [todo, photo_url, id]
   );
 
   const [updatedTodo] = await connection.execute(

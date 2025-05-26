@@ -1,46 +1,33 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useFormStatus } from "react-dom";
+import { handleAddTodo } from "@/server-actions";
+import { SubmitButton } from "@/helpers";
 
-interface AddTodoItemProps {
-  onAdd: (title: string) => void;
-}
-
-export const AddTodoItem = ({ onAdd }: AddTodoItemProps) => {
-  const [title, setTitle] = useState("");
-
-  const handleAdd = () => {
-    if (title.trim()) {
-      onAdd(title.trim());
-      setTitle("");
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleAdd();
-    }
-  };
+export const AddTodoItem = () => {
+  const { pending } = useFormStatus();
 
   return (
-    <div className="flex gap-4 w-full">
-      <Input
-        type="text"
-        className="w-full"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={handleKeyPress}
-        placeholder="Add a new todo..."
-      />
-      <Button
-        variant="outline"
-        className="rounded-full w-10 h-10"
-        onClick={handleAdd}
-      >
-        +
-      </Button>
-    </div>
+    <form
+      action={async (formData: FormData) => {
+        const todo = formData.get("todo") as string;
+        if (!todo.trim()) return;
+
+        await handleAddTodo(todo);
+      }}
+      className="flex flex-col gap-2 w-full"
+    >
+      <div className="flex gap-4 w-full">
+        <Input
+          name="todo"
+          type="text"
+          className="w-full"
+          placeholder="Add a new todo..."
+          disabled={pending}
+        />
+        <SubmitButton />
+      </div>
+    </form>
   );
 };
