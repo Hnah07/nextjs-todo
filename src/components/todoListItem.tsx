@@ -6,38 +6,49 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  MdOutlineDelete,
-  MdCheckBoxOutlineBlank,
-  MdCheckBox,
-} from "react-icons/md";
 import { FaRegEdit } from "react-icons/fa";
 import { useState } from "react";
-import { handleDelete, handleToggleComplete } from "@/server-actions";
 import type { Todo } from "@/types";
 import Image from "next/image";
+import { DeleteDialog, ToggleButton } from "@/helpers";
+import { handleDelete, handleToggleComplete } from "@/server-actions";
+import { toast } from "sonner";
 
 export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
   const onDelete = async () => {
-    await handleDelete(id);
-    setIsDeleteDialogOpen(false);
+    setIsDeleting(true);
+    try {
+      const result = await handleDelete(id);
+      if (result.type === "success") {
+        toast.success(result.message);
+        setIsDeleteDialogOpen(false);
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  const toggleComplete = async () => {
-    await handleToggleComplete(id, !completed);
+  const toggleComplete = async (formData: FormData) => {
+    setIsToggling(true);
+    try {
+      const result = await handleToggleComplete(
+        Number(formData.get("id")),
+        formData.get("completed") === "true"
+      );
+      if (result.type === "success") {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   return (
@@ -47,17 +58,15 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               {/* complete button */}
-              {completed ? (
-                <MdCheckBox
-                  className="w-5 h-5 cursor-pointer text-green-500 hover:text-green-600 shrink-0"
-                  onClick={toggleComplete}
+              <form action={toggleComplete}>
+                <input type="hidden" name="id" value={id} />
+                <input
+                  type="hidden"
+                  name="completed"
+                  value={(!completed).toString()}
                 />
-              ) : (
-                <MdCheckBoxOutlineBlank
-                  className="w-5 h-5 cursor-pointer hover:text-green-500 shrink-0"
-                  onClick={toggleComplete}
-                />
-              )}
+                <ToggleButton completed={completed} isPending={isToggling} />
+              </form>
               <AccordionTrigger
                 className={`flex-1 text-left break-words min-h-[40px] flex items-center hover:no-underline hover:decoration-none [&[data-state=open]]:no-underline ${
                   completed ? "line-through" : ""
@@ -71,32 +80,12 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
               <FaRegEdit className="w-5 h-5 cursor-pointer hover:text-blue-500" />
 
               {/* delete button */}
-              <AlertDialog
-                open={isDeleteDialogOpen}
+              <DeleteDialog
+                isOpen={isDeleteDialogOpen}
                 onOpenChange={setIsDeleteDialogOpen}
-              >
-                <AlertDialogTrigger asChild>
-                  <MdOutlineDelete className="w-5 h-5 cursor-pointer hover:text-red-500" />
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete
-                      your todo item.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={onDelete}
-                      className="bg-red-500 hover:bg-red-600"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                onDelete={onDelete}
+                isDeleting={isDeleting}
+              />
             </div>
           </div>
           <AccordionContent>

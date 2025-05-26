@@ -4,3 +4,8 @@ export interface Todo {
   photo_url: string;
   completed: boolean;
 }
+
+export interface ServerFeedback {
+  type: string;
+  message: string;
+}
