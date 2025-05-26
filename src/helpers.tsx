@@ -79,7 +79,9 @@ export function ToggleButton({
         }`}
         disabled={isPending}
       >
-        {completed ? (
+        {isPending ? (
+          <Loader2 className="w-5 h-5 animate-spin text-green-500 shrink-0" />
+        ) : completed ? (
           <MdCheckBox className="w-5 h-5 text-green-500 hover:text-green-600 shrink-0" />
         ) : (
           <MdCheckBoxOutlineBlank className="w-5 h-5 hover:text-green-500 shrink-0" />

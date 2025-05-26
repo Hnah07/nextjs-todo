@@ -21,7 +21,6 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
 
   const onDelete = async () => {
     setIsDeleting(true);
@@ -38,21 +37,14 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
     }
   };
 
-  const toggleComplete = async (formData: FormData) => {
-    setIsToggling(true);
-    try {
-      const result = await handleToggleComplete(
-        Number(formData.get("id")),
-        formData.get("completed") === "true"
-      );
-      if (result.type === "success") {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
-    } finally {
-      setIsToggling(false);
+  const onToggle = async (id: number, completed: boolean) => {
+    const result = await handleToggleComplete(id, completed);
+    if (result.type === "success") {
+      toast.success(result.message);
+    } else {
+      toast.error(result.message);
     }
+    return result;
   };
 
   const onEdit = async (formData: FormData) => {
@@ -80,15 +72,7 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1 min-h-[48px]">
               {/* complete button */}
-              <form action={toggleComplete} className="flex items-center">
-                <input type="hidden" name="id" value={id} />
-                <input
-                  type="hidden"
-                  name="completed"
-                  value={(!completed).toString()}
-                />
-                <ToggleButton completed={completed} isPending={isToggling} />
-              </form>
+              <ToggleButton completed={completed} id={id} onToggle={onToggle} />
               <AccordionTrigger
                 className={`flex-1 text-left break-words flex items-center hover:no-underline hover:decoration-none [&[data-state=open]]:no-underline py-2 ${
                   completed ? "line-through" : ""
