@@ -23,7 +23,7 @@
 # misc
 .DS_Store
 *.pem
-google-key.json
+/src/google-key.json
 
 # debug
 npm-debug.log*
