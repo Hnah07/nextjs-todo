@@ -1,12 +1,12 @@
 import { google } from "googleapis";
-import keys from "../../../google-key.json";
+// import keys from "../../../google-key.json";
 import { NextResponse } from "next/server";
 
 async function getSheetClient() {
   const client = new google.auth.JWT(
-    keys.client_email,
+    process.env.GOOGLE_CLIENT_EMAIL,
     null,
-    keys.private_key,
+    process.env.GOOGLE_PRIVATE_KEY,
     ["https://www.googleapis.com/auth/spreadsheets"]
   );
 
