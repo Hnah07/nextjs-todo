@@ -2,21 +2,23 @@
 
 import { revalidatePath } from "next/cache";
 import { Todo } from "../types";
-import { headers } from "next/headers";
 
 type SheetRow = [string, string, string, string];
 
 async function getBaseUrl() {
+  // In production, use absolute URL
   if (process.env.NODE_ENV === "production") {
-    return `${
-      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""
-    }/api/sheet`;
+    // Use the deployment URL from environment
+    const url = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_VERCEL_URL
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : "http://localhost:3000";
+    return `${url}/api/sheet`;
   }
 
-  const headersList = await headers();
-  const host = headersList.get("host");
-  const protocol = headersList.get("x-forwarded-proto") || "http";
-  return `${protocol}://${host}/api/sheet`;
+  // In development, use relative URL
+  return "/api/sheet";
 }
 
 async function fetchSheetData() {
@@ -26,6 +28,12 @@ async function fetchSheetData() {
   try {
     const response = await fetch(baseUrl, {
       cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      // Add credentials mode
+      credentials: "same-origin",
     });
 
     console.log("Response status:", response.status);
