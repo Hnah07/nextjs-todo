@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Todo } from "@/types";
 import Image from "next/image";
 import { DeleteDialog, ToggleButton, EditDialog } from "@/helpers";
@@ -17,10 +17,21 @@ import {
 } from "@/server-actions";
 import { toast } from "sonner";
 
-export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
+export const TodoListItem = ({
+  id,
+  todo,
+  photo_url,
+  completed: initialCompleted,
+}: Todo) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [optimisticCompleted, setOptimisticCompleted] =
+    useState(initialCompleted);
+
+  useEffect(() => {
+    setOptimisticCompleted(initialCompleted);
+  }, [initialCompleted]);
 
   const onDelete = async () => {
     setIsDeleting(true);
@@ -38,10 +49,13 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   };
 
   const onToggle = async (id: number, completed: boolean) => {
+    setOptimisticCompleted(completed);
+
     const result = await handleToggleComplete(id, completed);
     if (result.type === "success") {
       toast.success(result.message);
     } else {
+      setOptimisticCompleted(!completed);
       toast.error(result.message);
     }
     return result;
@@ -68,14 +82,21 @@ export const TodoListItem = ({ id, todo, photo_url, completed }: Todo) => {
   return (
     <div className="flex items-center gap-4 w-full border border-gray-200 rounded-lg px-4 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white">
       <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="item-1" className={completed ? "opacity-50" : ""}>
+        <AccordionItem
+          value="item-1"
+          className={optimisticCompleted ? "opacity-50" : ""}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1 min-h-[48px]">
               {/* complete button */}
-              <ToggleButton completed={completed} id={id} onToggle={onToggle} />
+              <ToggleButton
+                completed={optimisticCompleted}
+                id={id}
+                onToggle={onToggle}
+              />
               <AccordionTrigger
                 className={`flex-1 text-left break-words flex items-center hover:no-underline hover:decoration-none [&[data-state=open]]:no-underline py-2 ${
-                  completed ? "line-through" : ""
+                  optimisticCompleted ? "line-through" : ""
                 }`}
               >
                 {todo}

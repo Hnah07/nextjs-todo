@@ -57,10 +57,8 @@ export function ToggleButton({
 }) {
   const [, action, isPending] = useActionState(
     async (state: ServerFeedback, formData: FormData) => {
-      const result = await onToggle(
-        Number(formData.get("id")),
-        formData.get("completed") === "true"
-      );
+      const newCompleted = formData.get("completed") === "true";
+      const result = await onToggle(Number(formData.get("id")), newCompleted);
       return result;
     },
     { type: "", message: "" }
@@ -74,8 +72,8 @@ export function ToggleButton({
         type="submit"
         variant="ghost"
         size="icon"
-        className={`p-0 h-auto w-auto ${
-          isPending ? "opacity-50 pointer-events-none" : ""
+        className={`p-0 h-auto w-auto transition-colors duration-200 ${
+          isPending ? "opacity-50" : ""
         }`}
         disabled={isPending}
       >

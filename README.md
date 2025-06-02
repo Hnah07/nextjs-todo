@@ -1,8 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Todo App with Next.js Server Actions
+
+This project is a school exercise designed to practice and demonstrate the use of Next.js Server Actions and the `useActionState` hook. It's a simple todo application that allows users to create, read, update, and delete todo items with optional photo attachments.
+
+## Learning Objectives
+
+- Practice implementing and using Server Actions in Next.js
+- Understand and implement `useActionState` for handling form submissions
+- Work with client-side state management
+- Handle file uploads and image display
+- Practice error handling and user feedback
+
+## Features
+
+- Create, read, update, and delete todo items
+- Toggle todo completion status
+- Attach photos to todo items
+- Real-time feedback using toast notifications
+- Responsive design with a modern UI
+- Server-side data persistence
+
+## Technical Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Server Actions
+- Tailwind CSS
+- Shadcn/ui components
+- Sonner for toast notifications
 
 ## Getting Started
 
-First, run the development server:
+First, install the dependencies:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -10,27 +48,29 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/src/app` - Next.js app router pages and layouts
+- `/src/components` - Reusable UI components
+- `/src/lib` - Utility functions and configurations
+- `/src/server-actions.ts` - Server Actions implementation
+- `/src/types.ts` - TypeScript type definitions
 
-## Learn More
+## Key Learning Points
 
-To learn more about Next.js, take a look at the following resources:
+1. **Server Actions**: Implementation of server-side functions that can be called directly from client components
+2. **useActionState**: Practice with form handling and state management using the useActionState hook
+3. **Error Handling**: Implementation of proper error handling and user feedback
+4. **Type Safety**: TypeScript implementation for better development experience
+5. **UI/UX**: Modern UI implementation using Tailwind CSS and shadcn/ui
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Resources
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Next.js Server Actions Documentation](https://nextjs.org/docs/app/api-reference/functions/server-actions)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Shadcn/ui Documentation](https://ui.shadcn.com)
