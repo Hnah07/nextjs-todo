@@ -1,12 +1,12 @@
 import { google, sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
 
-// Add middleware configuration to bypass authentication
-export const config = {
-  runtime: "edge",
-  regions: ["iad1"],
-  unstable_allowDynamicGlobals: ["google"],
-};
+// Remove Edge runtime config as it's not compatible with Google Sheets API
+// export const config = {
+//   runtime: "edge",
+//   regions: ["iad1"],
+//   unstable_allowDynamicGlobals: ["google"],
+// };
 
 type SheetsClient = sheets_v4.Sheets;
 
@@ -47,13 +47,6 @@ async function findRowIndex(gsapi: SheetsClient, id: number) {
 }
 
 export async function GET() {
-  // Add CORS headers
-  const response = NextResponse.json({ todos: [] }, { status: 200 });
-
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-
   try {
     if (!process.env.GOOGLE_SHEET_ID) {
       throw new Error("GOOGLE_SHEET_ID environment variable is not set");
@@ -78,32 +71,31 @@ export async function GET() {
       completed: row[3] === "TRUE" || row[3] === "true",
     }));
 
-    return NextResponse.json(
-      { todos },
-      {
-        status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      }
-    );
+    // Create response only after successful data fetch
+    return new NextResponse(JSON.stringify({ todos }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
   } catch (error: unknown) {
     console.error("Error in GET /api/sheet:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Something went wrong";
-    return NextResponse.json(
-      { error: errorMessage },
-      {
-        status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      }
-    );
+
+    // Create error response with proper JSON
+    return new NextResponse(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
   }
 }
 
