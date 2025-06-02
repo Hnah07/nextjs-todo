@@ -9,8 +9,5 @@
       }
     }
   ],
-  "public": true,
-  "auth": {
-    "publicRoutes": ["/api/sheet"]
-  }
+  "public": true
 }
