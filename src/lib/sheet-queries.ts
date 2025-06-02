@@ -5,7 +5,7 @@ import { Todo } from "../types";
 
 type SheetRow = [string, string, string, string];
 
-const BASE_URL = "http://localhost:3000/api/sheet";
+const BASE_URL = "nextjs-todo-pink-iota.vercel.app/api/sheet";
 
 async function fetchSheetData() {
   const response = await fetch(BASE_URL, {
