@@ -9,3 +9,5 @@ export interface ServerFeedback {
   type: string;
   message: string;
 }
+
+export type SheetRow = [string, string, string, string];

@@ -1,24 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Todo } from "../types";
-
-type SheetRow = [string, string, string, string];
+import { Todo, SheetRow } from "../types";
 
 async function getBaseUrl() {
-  // In production, use absolute URL
-  if (process.env.NODE_ENV === "production") {
-    // Use the deployment URL from environment
-    const url = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : "http://localhost:3000";
-    return `${url}/api/sheet`;
-  }
-
-  // In development, use relative URL
-  return "/api/sheet";
+  // Use NEXT_PUBLIC_VERCEL_URL in production, fallback to localhost in development
+  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : "http://localhost:3000";
+  return `${baseUrl}/api/sheet`;
 }
 
 async function fetchSheetData() {
@@ -32,7 +22,6 @@ async function fetchSheetData() {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      // Add credentials mode
       credentials: "same-origin",
     });
 
@@ -41,23 +30,31 @@ async function fetchSheetData() {
       const errorText = await response.text();
       console.error("Error response:", errorText);
       throw new Error(
-        `Failed to fetch sheet data: ${response.status} ${errorText}`
+        `Sheet API request failed with status ${response.status}: ${errorText}`
       );
     }
 
     const data = await response.json();
     console.log("Response data:", data);
     if (data.error) {
-      throw new Error(data.message || "Failed to fetch sheet data");
+      throw new Error(data.message || "Sheet API returned an error");
     }
 
-    return {
-      headers: data.headers,
-      rows: data.rows as SheetRow[],
-    };
+    // Convert todos array to rows format for consistency
+    const rows: SheetRow[] = data.todos.map((todo: Todo) => [
+      todo.id.toString(),
+      todo.todo,
+      todo.photo_url || "",
+      todo.completed ? "TRUE" : "FALSE",
+    ]);
+
+    return { rows };
   } catch (error) {
-    console.error("Fetch error:", error);
-    throw error;
+    console.error("Sheet API fetch error:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to fetch sheet data: ${error.message}`);
+    }
+    throw new Error("Failed to fetch sheet data: Unknown error");
   }
 }
 
