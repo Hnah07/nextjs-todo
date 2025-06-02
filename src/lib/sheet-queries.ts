@@ -2,29 +2,51 @@
 
 import { revalidatePath } from "next/cache";
 import { Todo } from "../types";
+import { headers } from "next/headers";
 
 type SheetRow = [string, string, string, string];
 
 const BASE_URL = "/api/sheet";
 
+async function getBaseUrl() {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const protocol = headersList.get("x-forwarded-proto") || "http";
+  return `${protocol}://${host}${BASE_URL}`;
+}
+
 async function fetchSheetData() {
-  const response = await fetch(BASE_URL, {
-    cache: "no-store",
-  });
+  const baseUrl = await getBaseUrl();
+  console.log("Fetching from URL:", baseUrl);
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch sheet data");
+  try {
+    const response = await fetch(baseUrl, {
+      cache: "no-store",
+    });
+
+    console.log("Response status:", response.status);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error response:", errorText);
+      throw new Error(
+        `Failed to fetch sheet data: ${response.status} ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log("Response data:", data);
+    if (data.error) {
+      throw new Error(data.message || "Failed to fetch sheet data");
+    }
+
+    return {
+      headers: data.headers,
+      rows: data.rows as SheetRow[],
+    };
+  } catch (error) {
+    console.error("Fetch error:", error);
+    throw error;
   }
-
-  const data = await response.json();
-  if (data.error) {
-    throw new Error(data.message || "Failed to fetch sheet data");
-  }
-
-  return {
-    headers: data.headers,
-    rows: data.rows as SheetRow[],
-  };
 }
 
 export async function getTodos(): Promise<Todo[]> {
@@ -76,7 +98,9 @@ export async function addTodo(
 }
 
 export async function deleteTodo(id: number): Promise<void> {
-  const response = await fetch(BASE_URL, {
+  const baseUrl = await getBaseUrl();
+
+  const response = await fetch(baseUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -103,7 +127,9 @@ export async function toggleTodo(
   id: number,
   completed: boolean
 ): Promise<Todo> {
-  const response = await fetch(BASE_URL, {
+  const baseUrl = await getBaseUrl();
+
+  const response = await fetch(baseUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -133,7 +159,9 @@ export async function updateTodo(
   todo: string,
   photo_url: string
 ): Promise<Todo> {
-  const response = await fetch(BASE_URL, {
+  const baseUrl = await getBaseUrl();
+
+  const response = await fetch(baseUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

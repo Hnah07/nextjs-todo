@@ -1,12 +1,28 @@
 import { google } from "googleapis";
-// import keys from "../../../google-key.json";
 import { NextResponse } from "next/server";
+import keys from "../../../google-key.json";
 
 async function getSheetClient() {
+  let credentials;
+
+  if (process.env.NODE_ENV === "production") {
+    // In production, use environment variables
+    if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+      throw new Error("Missing Google credentials in environment variables");
+    }
+    credentials = {
+      client_email: process.env.GOOGLE_CLIENT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    };
+  } else {
+    // In development, use the JSON file
+    credentials = keys;
+  }
+
   const client = new google.auth.JWT(
-    process.env.GOOGLE_CLIENT_EMAIL,
+    credentials.client_email,
     null,
-    process.env.GOOGLE_PRIVATE_KEY,
+    credentials.private_key,
     ["https://www.googleapis.com/auth/spreadsheets"]
   );
 
@@ -36,13 +52,24 @@ async function findRowIndex(gsapi, id) {
 
 export async function GET() {
   try {
+    if (!process.env.GOOGLE_SHEET_ID) {
+      throw new Error("GOOGLE_SHEET_ID environment variable is not set");
+    }
+
+    console.log("Attempting to get sheet client...");
     const gsapi = await getSheetClient();
+    console.log("Sheet client obtained successfully");
+
+    console.log("Attempting to fetch sheet data...");
+    console.log("Using Sheet ID:", process.env.GOOGLE_SHEET_ID);
     const response = await gsapi.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: "!A:D",
     });
+    console.log("Sheet data fetched successfully");
 
     if (!response.data.values) {
+      console.log("No values found in response:", response.data);
       throw new Error("No data found in sheet");
     }
 
@@ -52,7 +79,12 @@ export async function GET() {
       rows: response.data.values.slice(1),
     });
   } catch (e) {
-    console.error("Error in GET /api/sheet:", e);
+    console.error("Detailed error in GET /api/sheet:", {
+      message: e.message,
+      stack: e.stack,
+      name: e.name,
+      code: e.code,
+    });
     return NextResponse.json(
       { error: true, message: e.message },
       { status: 400 }
