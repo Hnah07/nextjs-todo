@@ -2,7 +2,6 @@ import { google } from "googleapis";
 import keys from "../../../google-key.json";
 import { NextResponse } from "next/server";
 
-// Helper function to get Google Sheets client
 async function getSheetClient() {
   const client = new google.auth.JWT(
     keys.client_email,
@@ -15,18 +14,16 @@ async function getSheetClient() {
   return google.sheets({ version: "v4", auth: client });
 }
 
-// Helper function to find row index by id
 async function findRowIndex(gsapi, id) {
   const response = await gsapi.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: "!A:A", // Only get the ID column
+    range: "!A:A",
   });
 
   if (!response.data.values) {
     throw new Error("No data found in sheet");
   }
 
-  // Skip header row, find matching id
   const rowIndex = response.data.values
     .slice(1)
     .findIndex((row) => parseInt(row[0]) === id);
@@ -34,7 +31,6 @@ async function findRowIndex(gsapi, id) {
     throw new Error("Todo not found");
   }
 
-  // Add 2 because: 1 for 0-based index, 1 for header row
   return rowIndex + 2;
 }
 
@@ -73,7 +69,7 @@ export async function POST(request) {
       case "add": {
         const response = await gsapi.spreadsheets.values.get({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: "!A:A", // Get last row for ID
+          range: "!A:A",
         });
 
         const lastRow = response.data.values?.[response.data.values.length - 1];
@@ -109,7 +105,7 @@ export async function POST(request) {
               {
                 deleteDimension: {
                   range: {
-                    sheetId: 0, // Assuming first sheet
+                    sheetId: 0,
                     dimension: "ROWS",
                     startIndex: rowNumber - 1,
                     endIndex: rowNumber,
@@ -135,7 +131,6 @@ export async function POST(request) {
           },
         });
 
-        // Get the updated row
         const response = await gsapi.spreadsheets.values.get({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,
           range: `!A${rowNumber}:D${rowNumber}`,
@@ -165,7 +160,6 @@ export async function POST(request) {
           },
         });
 
-        // Get the updated row
         const response = await gsapi.spreadsheets.values.get({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,
           range: `!A${rowNumber}:D${rowNumber}`,
