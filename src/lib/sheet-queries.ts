@@ -6,13 +6,17 @@ import { headers } from "next/headers";
 
 type SheetRow = [string, string, string, string];
 
-const BASE_URL = "/api/sheet";
-
 async function getBaseUrl() {
+  if (process.env.NODE_ENV === "production") {
+    return `${
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""
+    }/api/sheet`;
+  }
+
   const headersList = await headers();
   const host = headersList.get("host");
   const protocol = headersList.get("x-forwarded-proto") || "http";
-  return `${protocol}://${host}${BASE_URL}`;
+  return `${protocol}://${host}/api/sheet`;
 }
 
 async function fetchSheetData() {
@@ -64,11 +68,13 @@ export async function addTodo(
   todo: string,
   photo_url: string = ""
 ): Promise<Todo> {
+  const baseUrl = await getBaseUrl();
+
   const data = await fetchSheetData();
   const lastRow = data.rows[data.rows.length - 1];
   const newId = lastRow ? parseInt(lastRow[0]) + 1 : 1;
 
-  const response = await fetch(BASE_URL, {
+  const response = await fetch(baseUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
