@@ -1,12 +1,27 @@
 import { google } from "googleapis";
 import { NextResponse } from "next/server";
-import keys from "../../../google-key.json";
+
+export const dynamic = "force-dynamic";
+
+// Only import the JSON file in development
+let keys;
+if (process.env.NODE_ENV !== "production") {
+  try {
+    keys = (
+      await import("../../../google-key.json", { assert: { type: "json" } })
+    ).default;
+  } catch {
+    console.warn(
+      "Could not load google-key.json, will use environment variables"
+    );
+  }
+}
 
 async function getSheetClient() {
   let credentials;
 
-  if (process.env.NODE_ENV === "production") {
-    // In production, use environment variables
+  if (process.env.NODE_ENV === "production" || !keys) {
+    // In production or if JSON file is not available, use environment variables
     if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
       throw new Error("Missing Google credentials in environment variables");
     }
@@ -15,7 +30,7 @@ async function getSheetClient() {
       private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     };
   } else {
-    // In development, use the JSON file
+    // In development with JSON file available, use it
     credentials = keys;
   }
 
