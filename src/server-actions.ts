@@ -1,7 +1,6 @@
 "use server";
 
 import { addTodo, deleteTodo, toggleTodo, updateTodo } from "./queries";
-import { revalidatePath } from "next/cache";
 import type { ServerFeedback } from "./types";
 
 export const handleDelete = async (id: number): Promise<ServerFeedback> => {
@@ -28,7 +27,7 @@ export const handleAddTodo = async (
   }
 
   try {
-    await addTodo(str.trim());
+    await addTodo(str.trim(), "");
     return { type: "success", message: "Todo added successfully" };
   } catch {
     return { type: "error", message: "Failed to add todo" };
@@ -40,8 +39,7 @@ export const handleToggleComplete = async (
   completed: boolean
 ): Promise<ServerFeedback> => {
   try {
-    await toggleTodo(id, completed);
-    revalidatePath("/");
+    await toggleTodo(id);
     return {
       type: "success",
       message: completed
@@ -60,7 +58,6 @@ export const handleUpdateTodo = async (
 ): Promise<ServerFeedback> => {
   try {
     await updateTodo(id, todo, photo_url);
-    revalidatePath("/");
     return { type: "success", message: "Todo updated successfully" };
   } catch {
     return { type: "error", message: "Failed to update todo" };
