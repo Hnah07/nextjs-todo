@@ -1,6 +1,11 @@
 "use server";
 
-import { addTodo, deleteTodo, toggleTodo, updateTodo } from "./queries";
+import {
+  addTodo,
+  deleteTodo,
+  toggleTodo,
+  updateTodo,
+} from "./lib/sheet-queries";
 import { revalidatePath } from "next/cache";
 import type { ServerFeedback } from "./types";
 

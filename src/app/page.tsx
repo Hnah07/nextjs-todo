@@ -1,6 +1,6 @@
 import { AddTodoItem } from "@/components/addTodoItem";
 import { TodoListItem } from "@/components/todoListItem";
-import { getTodos } from "@/queries";
+import { getTodos } from "@/lib/sheet-queries";
 
 async function HomePage() {
   const todos = await getTodos();
