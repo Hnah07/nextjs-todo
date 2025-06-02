@@ -1,43 +1,17 @@
-import { google } from "googleapis";
+import { google, sheets_v4 } from "googleapis";
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
+type SheetsClient = sheets_v4.Sheets;
 
-// Only import the JSON file in development
-let keys;
-if (process.env.NODE_ENV !== "production") {
-  try {
-    keys = (
-      await import("../../../google-key.json", { assert: { type: "json" } })
-    ).default;
-  } catch {
-    console.warn(
-      "Could not load google-key.json, will use environment variables"
-    );
-  }
-}
-
-async function getSheetClient() {
-  let credentials;
-
-  if (process.env.NODE_ENV === "production" || !keys) {
-    // In production or if JSON file is not available, use environment variables
-    if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
-      throw new Error("Missing Google credentials in environment variables");
-    }
-    credentials = {
-      client_email: process.env.GOOGLE_CLIENT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY,
-    };
-  } else {
-    // In development with JSON file available, use it
-    credentials = keys;
+async function getSheetClient(): Promise<SheetsClient> {
+  if (!process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
+    throw new Error("Missing Google credentials in environment variables");
   }
 
   const client = new google.auth.JWT(
-    credentials.client_email,
-    null,
-    credentials.private_key,
+    process.env.GOOGLE_CLIENT_EMAIL,
+    undefined,
+    process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     ["https://www.googleapis.com/auth/spreadsheets"]
   );
 
@@ -45,19 +19,19 @@ async function getSheetClient() {
   return google.sheets({ version: "v4", auth: client });
 }
 
-async function findRowIndex(gsapi, id) {
+async function findRowIndex(gsapi: SheetsClient, id: number) {
   const response = await gsapi.spreadsheets.values.get({
     spreadsheetId: process.env.GOOGLE_SHEET_ID,
     range: "!A:A",
   });
 
-  if (!response.data.values) {
+  if (!response.data?.values) {
     throw new Error("No data found in sheet");
   }
 
-  const rowIndex = response.data.values
+  const rowIndex = response.data?.values
     .slice(1)
-    .findIndex((row) => parseInt(row[0]) === id);
+    .findIndex((row: string[]) => parseInt(row[0]) === id);
   if (rowIndex === -1) {
     throw new Error("Todo not found");
   }
@@ -71,43 +45,35 @@ export async function GET() {
       throw new Error("GOOGLE_SHEET_ID environment variable is not set");
     }
 
-    console.log("Attempting to get sheet client...");
     const gsapi = await getSheetClient();
-    console.log("Sheet client obtained successfully");
-
-    console.log("Attempting to fetch sheet data...");
-    console.log("Using Sheet ID:", process.env.GOOGLE_SHEET_ID);
     const response = await gsapi.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: "!A:D",
     });
-    console.log("Sheet data fetched successfully");
 
-    if (!response.data.values) {
-      console.log("No values found in response:", response.data);
+    const values = response.data?.values;
+    if (!values || values.length === 0) {
       throw new Error("No data found in sheet");
     }
 
-    return NextResponse.json({
-      error: false,
-      headers: response.data.values[0],
-      rows: response.data.values.slice(1),
-    });
-  } catch (e) {
-    console.error("Detailed error in GET /api/sheet:", {
-      message: e.message,
-      stack: e.stack,
-      name: e.name,
-      code: e.code,
-    });
-    return NextResponse.json(
-      { error: true, message: e.message },
-      { status: 400 }
-    );
+    const [, ...rows] = values ?? [];
+    const todos = rows.map((row) => ({
+      id: parseInt(row[0]),
+      todo: row[1],
+      photo_url: row[2] || "",
+      completed: row[3] === "TRUE" || row[3] === "true",
+    }));
+
+    return NextResponse.json({ todos }, { status: 200 });
+  } catch (error: unknown) {
+    console.error("Error in GET /api/sheet:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Something went wrong";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const gsapi = await getSheetClient();
     const { action, id, todo, photo_url, completed } = await request.json();
@@ -119,7 +85,8 @@ export async function POST(request) {
           range: "!A:A",
         });
 
-        const lastRow = response.data.values?.[response.data.values.length - 1];
+        const lastRow =
+          response.data?.values?.[response.data.values.length - 1];
         const newId = lastRow ? parseInt(lastRow[0]) + 1 : 1;
 
         await gsapi.spreadsheets.values.append({
@@ -183,14 +150,14 @@ export async function POST(request) {
           range: `!A${rowNumber}:D${rowNumber}`,
         });
 
-        const row = response.data.values[0];
+        const row = response.data?.values?.[0];
         return NextResponse.json({
           error: false,
           data: {
-            id: parseInt(row[0]),
-            todo: row[1],
-            photo_url: row[2] || "",
-            completed: row[3] === "TRUE" || row[3] === "true",
+            id: parseInt(row?.[0] ?? "0"),
+            todo: row?.[1] ?? "",
+            photo_url: row?.[2] ?? "",
+            completed: row?.[3] === "TRUE" || row?.[3] === "true",
           },
         });
       }
@@ -212,14 +179,14 @@ export async function POST(request) {
           range: `!A${rowNumber}:D${rowNumber}`,
         });
 
-        const row = response.data.values[0];
+        const row = response.data?.values?.[0];
         return NextResponse.json({
           error: false,
           data: {
-            id: parseInt(row[0]),
-            todo: row[1],
-            photo_url: row[2] || "",
-            completed: row[3] === "TRUE" || row[3] === "true",
+            id: parseInt(row?.[0] ?? "0"),
+            todo: row?.[1] ?? "",
+            photo_url: row?.[2] ?? "",
+            completed: row?.[3] === "TRUE" || row?.[3] === "true",
           },
         });
       }
@@ -227,10 +194,12 @@ export async function POST(request) {
       default:
         throw new Error("Invalid action");
     }
-  } catch (e) {
-    console.error("Error in POST /api/sheet:", e);
+  } catch (error: unknown) {
+    console.error("Error in POST /api/sheet:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Something went wrong";
     return NextResponse.json(
-      { error: true, message: e.message },
+      { error: true, message: errorMessage },
       { status: 400 }
     );
   }
